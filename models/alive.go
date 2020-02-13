@@ -33,5 +33,5 @@ func GetIsAliveResponse() IsAliveResponse {
 	myip := getOutboundIP()
 	hname, _ := os.Hostname()
 
-	return IsAliveResponse{hname, myip.String(), time.Now().UnixNano(), "v1.0.5"}
+	return IsAliveResponse{hname, myip.String(), time.Now().UnixNano(), "v1.0.6"}
 }
