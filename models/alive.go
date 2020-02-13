@@ -12,7 +12,7 @@ type IsAliveResponse struct {
 	Hostname  string `json:"hostname"`
 	IP        string `json:"ip"`
 	Timestemp int64  `json:"timestemp"`
-	VER       string `json:"timestemp"`
+	VER       string `json:"version"`
 }
 
 func getOutboundIP() net.IP {
@@ -33,5 +33,5 @@ func GetIsAliveResponse() IsAliveResponse {
 	myip := getOutboundIP()
 	hname, _ := os.Hostname()
 
-	return IsAliveResponse{hname, myip.String(), time.Now().UnixNano(), "v1.0.3"}
+	return IsAliveResponse{hname, myip.String(), time.Now().UnixNano(), "v1.0.4"}
 }
