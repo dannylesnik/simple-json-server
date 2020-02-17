@@ -30,9 +30,8 @@ func (person Person) AddPerson() (Person, error) {
 func GetPerson(id string) (*Person, error) {
 	if person, ok := persons[id]; ok {
 		return &person, nil
-	} else {
-		return nil, errors.New("person not Found")
 	}
+	return nil, errors.New("person not Found")
 }
 
 //DeletePerson - delete single person
@@ -41,18 +40,17 @@ func DeletePerson(id string) (*Person, error) {
 		delete(persons, id)
 		fmt.Println("deleting object")
 		return &person, nil
-	} else {
-		return nil, errors.New("person not Found")
 	}
+	return nil, errors.New("person not Found")
 }
 
-//UpdatePerson - 
+//UpdatePerson -
 func (person Person) UpdatePerson() Person {
 
-
-		persons[person.ID] = person
+	persons[person.ID] = person
 	return person
 }
+
 //Unmarshal --- unmarshal person
 func Unmarshal(data []byte, person *Person) error {
 	err := json.Unmarshal(data, &person)

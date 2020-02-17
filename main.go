@@ -35,7 +35,7 @@ func isalive(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		log.Printf("Your JSON is %s\n", jsonString)
+		log.Println("Your JSON is %s\n", jsonString)
 	}
 	json.NewEncoder(w).Encode(isalive)
 }

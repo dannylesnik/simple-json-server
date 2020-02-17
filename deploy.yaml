@@ -1,0 +1,53 @@
+apiVersion: v1
+data:
+  config.properties: myproperty=prod
+kind: ConfigMap
+metadata:
+  name: http-json-server-config-8cmmf58tkh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-json-server
+spec:
+  ports:
+  - port: 8080
+    targetPort: 9000
+  selector:
+    app: http-json-server
+  type: LoadBalancer
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: http-json-server
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: http-json-server
+      name: http-json-server
+    spec:
+      containers:
+      - image: 113379206287.dkr.ecr.us-east-1.amazonaws.com/dannylesnik/simple-json-server:v1.0.4
+        name: http-json-server
+        readinessProbe:
+          httpGet:
+            path: /isalive
+            port: 9000
+          periodSeconds: 1
+        volumeMounts:
+        - mountPath: /app/config.properties
+          name: http-json-server-properties-volume
+          subPath: config.properties
+      volumes:
+      - configMap:
+          name: http-json-server-config-8cmmf58tkh
+        name: http-json-serverstrator-properties-volume

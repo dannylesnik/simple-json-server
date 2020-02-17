@@ -1,0 +1,13 @@
+resources:
+- deployment/deployment.yaml
+- deployment/service.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: 113379206287.dkr.ecr.us-east-1.amazonaws.com/dannylesnik/simple-json-server
+  newName: 113379206287.dkr.ecr.us-east-1.amazonaws.com/dannylesnik/simple-json-server
+  newTag: v1.0.4
+configMapGenerator:
+- files:
+  - deployment/production/config.properties
+  name: http-json-server-config
