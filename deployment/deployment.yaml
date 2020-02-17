@@ -1,0 +1,34 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: http-json-server
+spec:
+  replicas: 1
+  minReadySeconds: 10
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      name: http-json-server
+      labels:
+        app: http-json-server
+    spec:
+      containers:
+        - image: 113379206287.dkr.ecr.us-east-1.amazonaws.com/dannylesnik/simple-json-server:latest
+          name: http-json-server
+          volumeMounts:
+            - mountPath: /app/config.properties
+              subPath: config.properties
+              name: http-json-server-properties-volume
+          readinessProbe:
+            periodSeconds: 1
+            httpGet:
+              path: /isalive
+              port: 9000
+      volumes:
+        - name: http-json-serverstrator-properties-volume
+          configMap:
+            name:  http-json-server-config
