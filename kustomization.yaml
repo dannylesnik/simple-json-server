@@ -6,8 +6,4 @@ kind: Kustomization
 images:
 - name: 113379206287.dkr.ecr.us-east-1.amazonaws.com/dannylesnik/simple-json-server
   newName: 113379206287.dkr.ecr.us-east-1.amazonaws.com/dannylesnik/simple-json-server
-  newTag: v1.0.4
-configMapGenerator:
-- files:
-  - deployment/production/config.properties
-  name: http-json-server-config
+  newTag: v1.0.6-2-g05d5fa2

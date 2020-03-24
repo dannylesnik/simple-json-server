@@ -36,7 +36,7 @@ spec:
       name: http-json-server
     spec:
       containers:
-      - image: 113379206287.dkr.ecr.us-east-1.amazonaws.com/dannylesnik/simple-json-server:v1.0.4
+      - image: 113379206287.dkr.ecr.us-east-1.amazonaws.com/dannylesnik/simple-json-server:v1.0.6-2-g05d5fa2
         name: http-json-server
         readinessProbe:
           httpGet:

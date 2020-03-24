@@ -1,0 +1,180 @@
+basePath: /
+definitions:
+  models.Error:
+    properties:
+      code:
+        type: integer
+      error:
+        type: string
+      msg:
+        type: string
+    type: object
+  models.IsAliveResponse:
+    properties:
+      hostname:
+        type: string
+      ip:
+        type: string
+      timestemp:
+        type: integer
+      version:
+        type: string
+    type: object
+  models.Person:
+    properties:
+      firstname:
+        type: string
+      id:
+        type: string
+      lastname:
+        type: string
+    required:
+    - firstname
+    - lastname
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: Danny Lesnik
+    url: http://hithub.com/dannylesnik/
+  description: This is REST API for Simple-json-server demo application.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://hithub.com/dannylesnik/
+  title: Simple Json Server
+  version: "1.0"
+paths:
+  /api/v1/add:
+    post:
+      consumes:
+      - application/json
+      description: Create new Person record
+      operationId: CreatePerson
+      parameters:
+      - description: Person Record as JSON
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/models.Person'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Person'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Create new Person record
+      tags:
+      - Person API
+  /api/v1/isalive:
+    get:
+      description: Returns hostname, IP, time and Version of current service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.IsAliveResponse'
+      summary: Liveness
+      tags:
+      - Liveness API
+  /api/v1/persons/{id}:
+    delete:
+      description: Delete Person record by it's ID
+      operationId: DeletePerson
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Person'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Delete Person by ID
+      tags:
+      - Person API
+    get:
+      description: Get Person record as JSON by Person's ID
+      operationId: GetPerson
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Person'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Get Person by ID
+      tags:
+      - Person API
+  /api/v1/update:
+    put:
+      consumes:
+      - application/json
+      description: Update Person record
+      operationId: UpdatePerson
+      parameters:
+      - description: Person Record as JSON
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/models.Person'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Person'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Update Person record
+      tags:
+      - Person API
+swagger: "2.0"
+x-extension-openapi:
+  example: value on a json format

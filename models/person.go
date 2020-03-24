@@ -1,9 +1,10 @@
 package models
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log"
 )
 
 //Person - This is person type
@@ -15,44 +16,64 @@ type Person struct {
 
 var persons = make(map[string]Person)
 
-//AddPerson - adds new Person
-func (person Person) AddPerson() (Person, error) {
-
-	if _, ok := persons[person.ID]; ok {
-		return person, errors.New("Person with this ID already exists")
+//AddPersonToDB - Save
+func (db *DB) AddPersonToDB(person Person) (*Person, error) {
+	insForm, err := db.Prepare("INSERT INTO PERSON(ID, Firstname, Lastname) VALUES(?,?,?)")
+	if err != nil {
+		return nil, err
 	}
-	persons[person.ID] = person
-	fmt.Println("person added")
+	defer insForm.Close()
+	_, er := insForm.Exec(person.ID, person.Firstname, person.Lastname)
+	if er != nil {
+		return nil, er
+	}
+	log.Println("INSERT: PERSON: " + person.ID)
+	return &person, nil
+}
+
+//GetPerson - get single Person from DB
+func (db *DB) GetPerson(id string) (*Person, error) {
+
+	row := db.QueryRow("select * from PERSON where ID=?", id)
+
+	person := new(Person)
+
+	err := row.Scan(&person.ID, &person.Firstname, &person.Lastname)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.New("No Person found matching your ID")
+	} else if err != nil {
+		log.Println(err)
+		return nil, err
+	}
 	return person, nil
 }
 
-//GetPerson - get single person
-func GetPerson(id string) (*Person, error) {
-	if person, ok := persons[id]; ok {
-		return &person, nil
-	}
-	return nil, errors.New("person not Found")
-}
-
 //DeletePerson - delete single person
-func DeletePerson(id string) (*Person, error) {
-	if person, ok := persons[id]; ok {
-		delete(persons, id)
-		fmt.Println("deleting object")
-		return &person, nil
+func (db *DB) DeletePerson(id string) (int64, error) {
+
+	result, err := db.Exec("delete from PERSON where ID =?", id)
+	if err != nil {
+		log.Println(err)
+		return 0, err
 	}
-	return nil, errors.New("person not Found")
+	return result.RowsAffected()
 }
 
 //UpdatePerson -
-func (person Person) UpdatePerson() Person {
+func (db *DB) UpdatePerson(person Person) (int64, error) {
+	result, err := db.Exec("update PERSON set Firstname = ?, Lastname = ? where ID=? ", person.Firstname, person.Lastname, person.ID)
+	if err != nil {
+		log.Println(err)
+		return 0, err
+	}
+	return result.RowsAffected()
 
-	persons[person.ID] = person
-	return person
 }
 
 //Unmarshal --- unmarshal person
 func Unmarshal(data []byte, person *Person) error {
+
 	err := json.Unmarshal(data, &person)
 
 	if err != nil {

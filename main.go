@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -12,98 +10,70 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/dannylesnik/simple-json-server/docs"
+	"github.com/dannylesnik/simple-json-server/handlers"
 	"github.com/dannylesnik/simple-json-server/models"
+	httpSwagger "github.com/swaggo/http-swagger"
+
 	"github.com/gorilla/mux"
 )
 
-//Error - Error Response Body
-type Error struct {
-	Error   string `json:"error"`
-	Message string `json:"msg"`
-	Code    int16  `json:"code"`
-}
-
 func homeLink(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome home!")
+	http.Redirect(w, r, "/swagger/index.html", http.StatusMovedPermanently)
 }
 
+// IsAlive godoc
+// @Summary Liveness
+// @Description Returns hostname, IP, time and Version of current service
+// @Tags Liveness API
+// @Produce  json
+// @Success 200 {object} models.IsAliveResponse
+// @Router /api/v1/isalive [get]
 func isalive(w http.ResponseWriter, r *http.Request) {
-
 	isalive := models.GetIsAliveResponse()
-	jsonString, err := json.Marshal(isalive)
-	fmt.Println(isalive)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		log.Println("Your JSON is %s\n", jsonString)
-	}
 	json.NewEncoder(w).Encode(isalive)
 }
 
-func deletePerson(w http.ResponseWriter, r *http.Request) {
-	eventID := mux.Vars(r)["id"]
-	person, err := models.DeletePerson(eventID)
-	if err != nil {
-		json.NewEncoder(w).Encode(Error{"Can't get Person", err.Error(), 404})
-	} else {
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(person)
-	}
-}
+// @title Simple Json Server
+// @version 1.0
+// @description This is REST API for Simple-json-server demo application.
+// @termsOfService http://hithub.com/dannylesnik/
 
-func getPerson(w http.ResponseWriter, r *http.Request) {
-	eventID := mux.Vars(r)["id"]
-	person, err := models.GetPerson(eventID)
-	if err != nil {
-		json.NewEncoder(w).Encode(Error{"Can't get Person", err.Error(), 404})
-	} else {
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(person)
-	}
-}
+// @contact.name Danny Lesnik
+// @contact.url http://hithub.com/dannylesnik/
 
-func createPerson(w http.ResponseWriter, r *http.Request) {
-	var person models.Person
-	reqBody, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		json.NewEncoder(w).Encode(Error{"Can't read Request", err.Error(), 400})
-	} else {
-		if err := models.Unmarshal(reqBody, &person); err != nil {
-			json.NewEncoder(w).Encode(Error{"Can't parse JSON Request", err.Error(), 400})
-		} else {
-			_, err = person.AddPerson()
-			if err == nil {
-				json.NewEncoder(w).Encode(person)
-			} else {
-				json.NewEncoder(w).Encode(Error{"Can't can't add new Person", err.Error(), 400})
-			}
-		}
-	}
-}
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-func updatePerson(w http.ResponseWriter, r *http.Request) {
-	var person models.Person
-	reqBody, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		json.NewEncoder(w).Encode(Error{"Can't read Request", err.Error(), 400})
-	} else {
-		if err := models.Unmarshal(reqBody, &person); err != nil {
-			json.NewEncoder(w).Encode(Error{"Can't parse JSON Request", err.Error(), 400})
-		} else {
-			person.UpdatePerson()
-			json.NewEncoder(w).Encode(person)
-		}
-	}
+// @host localhost:8080
+// @BasePath /
 
-}
-
+// @x-extension-openapi {"example": "value on a json format"}
 func main() {
+
+	dbase, err := models.InitDB("root:my-said2000@/test")
+	if err != nil {
+		log.Panic(err)
+	}
+
+	env := &handlers.Env{DB: dbase}
+
 	router := mux.NewRouter().StrictSlash(true)
+	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), //The url pointing to API definition
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("#swagger-ui"),
+	))
+
 	router.HandleFunc("/", homeLink)
-	router.HandleFunc("/isalive", isalive)
-	router.HandleFunc("/add", createPerson).Methods("POST")
-	router.HandleFunc("/persons/{id}", getPerson).Methods("GET")
-	router.HandleFunc("/persons/{id}", deletePerson).Methods("DELETE")
+	s := router.PathPrefix("/api/v1").Subrouter()
+
+	s.HandleFunc("/isalive", isalive)
+	s.HandleFunc("/add", env.CreatePerson).Methods("POST")
+	s.HandleFunc("/persons/{id}", env.GetPerson).Methods("GET")
+	s.HandleFunc("/persons/{id}", env.DeletePerson).Methods("DELETE")
+	s.HandleFunc("/update", env.UpdatePerson).Methods("PUT")
 
 	srv := &http.Server{
 		Handler:      router,
